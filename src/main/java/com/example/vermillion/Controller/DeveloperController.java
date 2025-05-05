@@ -1,57 +1,49 @@
 package com.example.vermillion.Controller;
 
+import com.example.vermillion.DTO.DeveloperDto;
 import com.example.vermillion.Model.Developer;
-import com.example.vermillion.Repository.DeveloperRepository;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
+import com.example.vermillion.Service.DeveloperService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-@Controller
+import java.util.List;
+
+@RestController
 @RequestMapping("/developers")
+@RequiredArgsConstructor
 public class DeveloperController {
-
-    private final DeveloperRepository developerRepository;
-
-    public DeveloperController(DeveloperRepository developerRepository) {
-        this.developerRepository = developerRepository;
-    }
+    private final DeveloperService developerService;
 
     @GetMapping
-    public String listDevelopers(Model model) {
-        model.addAttribute("developers", developerRepository.findAll());
-        return "developers/list";
+    public List<Developer> getAll() {
+        return developerService.findAll();
     }
 
-    @GetMapping("/new")
-    public String showCreateForm(Model model) {
-        model.addAttribute("developer", new Developer());
-        return "developers/form";
+    @GetMapping("/{id}")
+    public ResponseEntity<Developer> getById(@PathVariable Long id) {
+        return developerService.findById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public String createDeveloper(@ModelAttribute Developer developer) {
-        developerRepository.save(developer);
-        return "redirect:/developers";
+    public ResponseEntity<Developer> create(@RequestBody @Valid DeveloperDto dto) {
+        Developer created = developerService.create(dto);
+        return ResponseEntity.status(201).body(created);
     }
 
-    @GetMapping("/{id}/edit")
-    public String showEditForm(@PathVariable Long id, Model model) {
-        Developer developer = developerRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid developer Id:" + id));
-        model.addAttribute("developer", developer);
-        return "developers/form";
+    @PutMapping("/{id}")
+    public ResponseEntity<Developer> update(@PathVariable Long id, @RequestBody @Valid DeveloperDto dto) {
+        return developerService.update(id, dto)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping("/{id}")
-    public String updateDeveloper(@PathVariable Long id, @ModelAttribute Developer developer) {
-        developer.setDeveloperId(id);
-        developerRepository.save(developer);
-        return "redirect:/developers";
-    }
-
-    @GetMapping("/{id}/delete")
-    public String deleteDeveloper(@PathVariable Long id) {
-        developerRepository.deleteById(id);
-        return "redirect:/developers";
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        boolean deleted = developerService.delete(id);
+        return deleted ? ResponseEntity.ok().build() : ResponseEntity.notFound().build();
     }
 }

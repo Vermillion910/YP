@@ -1,57 +1,49 @@
 package com.example.vermillion.Controller;
 
+import com.example.vermillion.DTO.RoleDto;
 import com.example.vermillion.Model.Role;
-import com.example.vermillion.Repository.RoleRepository;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
+import com.example.vermillion.Service.RoleService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-@Controller
+import java.util.List;
+
+@RestController
 @RequestMapping("/roles")
+@RequiredArgsConstructor
 public class RoleController {
-
-    private final RoleRepository roleRepository;
-
-    public RoleController(RoleRepository roleRepository) {
-        this.roleRepository = roleRepository;
-    }
+    private final RoleService roleService;
 
     @GetMapping
-    public String listRoles(Model model) {
-        model.addAttribute("roles", roleRepository.findAll());
-        return "roles/list";
+    public List<Role> getAll() {
+        return roleService.findAll();
     }
 
-    @GetMapping("/new")
-    public String showCreateForm(Model model) {
-        model.addAttribute("role", new Role());
-        return "roles/form";
+    @GetMapping("/{id}")
+    public ResponseEntity<Role> getById(@PathVariable Long id) {
+        return roleService.findById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public String createRole(@ModelAttribute Role role) {
-        roleRepository.save(role);
-        return "redirect:/roles";
+    public ResponseEntity<Role> create(@RequestBody @Valid RoleDto dto) {
+        Role created = roleService.create(dto);
+        return ResponseEntity.status(201).body(created);
     }
 
-    @GetMapping("/{id}/edit")
-    public String showEditForm(@PathVariable Long id, Model model) {
-        Role role = roleRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid role Id: " + id));
-        model.addAttribute("role", role);
-        return "roles/form";
+    @PutMapping("/{id}")
+    public ResponseEntity<Role> update(@PathVariable Long id, @RequestBody @Valid RoleDto dto) {
+        return roleService.update(id, dto)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping("/{id}")
-    public String updateRole(@PathVariable Long id, @ModelAttribute Role role) {
-        role.setRoleId(id);
-        roleRepository.save(role);
-        return "redirect:/roles";
-    }
-
-    @GetMapping("/{id}/delete")
-    public String deleteRole(@PathVariable Long id) {
-        roleRepository.deleteById(id);
-        return "redirect:/roles";
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        boolean deleted = roleService.delete(id);
+        return deleted ? ResponseEntity.ok().build() : ResponseEntity.notFound().build();
     }
 }

@@ -1,54 +1,26 @@
 package com.example.vermillion.Model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.*;
-import java.util.List;
+import lombok.*;
+
+
 
 @Entity
-@Table(name = "roles")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Table(name = "Role")
 public class Role {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long roleId;
+    private Long id;                     // обычный суррогатный ключ
 
-    @Column(nullable = false)
+    @ManyToOne
+    @JoinColumn(name = "developerId", nullable = false)
+    private Developer developer;         // связь на разработчика
+
+    @Column(nullable = false, length = 255)
     private String roleName;
 
-    @JsonIgnore // Добавьте это
-    @ManyToMany(mappedBy = "roles")
-    private List<Developer> developers;
-
-    public Role() {
-    }
-
-    public Role(Long roleId, String roleName, List<Developer> developers) {
-        this.roleId = roleId;
-        this.roleName = roleName;
-        this.developers = developers;
-    }
-
-    public Long getRoleId() {
-        return roleId;
-    }
-
-    public void setRoleId(Long roleId) {
-        this.roleId = roleId;
-    }
-
-    public String getRoleName() {
-        return roleName;
-    }
-
-    public void setRoleName(String roleName) {
-        this.roleName = roleName;
-    }
-
-    public List<Developer> getDevelopers() {
-        return developers;
-    }
-
-    public void setDevelopers(List<Developer> developers) {
-        this.developers = developers;
-    }
 }

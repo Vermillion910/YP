@@ -1,57 +1,54 @@
 package com.example.vermillion.Controller;
 
+import com.example.vermillion.DTO.TaskDto;
 import com.example.vermillion.Model.Task;
-import com.example.vermillion.Repository.TaskRepository;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
+import com.example.vermillion.Service.TaskService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-@Controller
+import java.util.List;
+
+@RestController
 @RequestMapping("/tasks")
+@RequiredArgsConstructor
 public class TaskController {
-
-    private final TaskRepository taskRepository;
-
-    public TaskController(TaskRepository taskRepository) {
-        this.taskRepository = taskRepository;
-    }
+    private final TaskService taskService;
 
     @GetMapping
-    public String listTasks(Model model) {
-        model.addAttribute("tasks", taskRepository.findAll());
-        return "tasks/list";
+    public List<Task> getAll() {
+        return taskService.findAll();
     }
 
-    @GetMapping("/new")
-    public String showCreateForm(Model model) {
-        model.addAttribute("task", new Task());
-        return "tasks/form";
+    @GetMapping("/{id}")
+    public ResponseEntity<Task> getById(@PathVariable Long id) {
+        return taskService.findById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public String createTask(@ModelAttribute Task task) {
-        taskRepository.save(task);
-        return "redirect:/tasks";
+    public ResponseEntity<Task> create(@RequestBody @Valid TaskDto dto) {
+        Task created = taskService.create(dto);
+        return ResponseEntity.status(201).body(created);
     }
 
-    @GetMapping("/{id}/edit")
-    public String showEditForm(@PathVariable Long id, Model model) {
-        Task task = taskRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid task Id: " + id));
-        model.addAttribute("task", task);
-        return "tasks/form";
+    @PutMapping("/{id}")
+    public ResponseEntity<Task> update(
+            @PathVariable Long id,
+            @RequestBody @Valid TaskDto dto
+    ) {
+        return taskService.update(id, dto)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping("/{id}")
-    public String updateTask(@PathVariable Long id, @ModelAttribute Task task) {
-        task.setId(id);
-        taskRepository.save(task);
-        return "redirect:/tasks";
-    }
-
-    @GetMapping("/{id}/delete")
-    public String deleteTask(@PathVariable Long id) {
-        taskRepository.deleteById(id);
-        return "redirect:/tasks";
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        boolean deleted = taskService.delete(id);
+        return deleted
+                ? ResponseEntity.ok().build()
+                : ResponseEntity.notFound().build();
     }
 }

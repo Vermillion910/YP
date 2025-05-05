@@ -1,34 +1,59 @@
 package com.example.vermillion.Service;
 
+import com.example.vermillion.DTO.RoleDto;
+import com.example.vermillion.Model.Developer;
 import com.example.vermillion.Model.Role;
+import com.example.vermillion.Repository.DeveloperRepository;
 import com.example.vermillion.Repository.RoleRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class RoleService {
     private final RoleRepository roleRepository;
-
-    @Autowired
-    public RoleService(RoleRepository roleRepository) {
-        this.roleRepository = roleRepository;
-    }
+    private final DeveloperRepository developerRepository;
 
     public List<Role> findAll() {
-        return (List<Role>) roleRepository.findAll();
+        return roleRepository.findAll();
     }
 
-    public Role findById(Long id) {
-        return roleRepository.findById(id).orElse(null);
+    public Optional<Role> findById(Long id) {
+        return roleRepository.findById(id);
     }
 
-    public Role save(Role role) {
+    @Transactional
+    public Role create(RoleDto dto) {
+        Developer developer = developerRepository.findById(dto.getDeveloperId())
+                .orElseThrow(() -> new EntityNotFoundException("Разработчик не найден: " + dto.getDeveloperId()));
+        Role role = new Role();
+        role.setDeveloper(developer);
+        role.setRoleName(dto.getRoleName());
         return roleRepository.save(role);
     }
 
-    public void deleteById(Long id) {
-        roleRepository.deleteById(id);
+    @Transactional
+    public Optional<Role> update(Long id, RoleDto dto) {
+        return roleRepository.findById(id).map(existing -> {
+            Developer developer = developerRepository.findById(dto.getDeveloperId())
+                    .orElseThrow(() -> new EntityNotFoundException("Разработчик не найден: " + dto.getDeveloperId()));
+            existing.setDeveloper(developer);
+            existing.setRoleName(dto.getRoleName());
+            return roleRepository.save(existing);
+        });
+    }
+
+    @Transactional
+    public boolean delete(Long id) {
+        if (roleRepository.existsById(id)) {
+            roleRepository.deleteById(id);
+            return true;
+        }
+        return false;
     }
 }
