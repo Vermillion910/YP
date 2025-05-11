@@ -1,6 +1,7 @@
 package com.example.vermillion.Service;
 
 import com.example.vermillion.DTO.ProjectDto;
+import com.example.vermillion.Model.Developer;
 import com.example.vermillion.Model.Project;
 import com.example.vermillion.Repository.DeveloperRepository;
 import com.example.vermillion.Repository.ProjectRepository;
@@ -56,6 +57,20 @@ public class ProjectService {
             return true;
         }
         return false;
+    }
+
+    // -----------------------------
+    // Новые методы для HTML-контроллера
+    // -----------------------------
+
+    /** Возвращает всех разработчиков для выпадающего списка менеджеров */
+    public List<Developer> findAllManagers() {
+        return developerRepository.findAll();
+    }
+
+    /** Сохраняет или обновляет сущность Project напрямую (для HTML-форм) */
+    public void saveEntity(Project project) {
+        projectRepository.save(project);
     }
 }
 

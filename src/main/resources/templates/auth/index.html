@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Главная</title>
+
+    <!-- Bootstrap 5.3.6 CSS -->
+    <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css"
+            rel="stylesheet"
+            integrity="sha384-4Q6Gf2aSP4eDXB8Miphtr37CMZZQ5oXLH2yaXMJ2w8e2ZtHTl7GptT4jmndRuHDT"
+            crossorigin="anonymous"
+    />
+</head>
+<body class="bg-light">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+        <a class="navbar-brand" th:href="@{/static}">Главная</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navMenu">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item"><a class="nav-link" th:href="@{/templates/projects}">Проекты</a></li>
+                <li class="nav-item"><a class="nav-link" th:href="@{/templates/tasks}">Задачи</a></li>
+                <li class="nav-item"><a class="nav-link" th:href="@{/templates/developers}">Разработчики</a></li>
+                <li class="nav-item"><a class="nav-link" th:href="@{/templates/roles}">Роли</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container text-center py-5">
+    <h1 class="display-4 mb-4">Административная панель</h1>
+    <p class="lead mb-5">Перейдите в раздел, чтобы управлять сущностями</p>
+    <div class="d-grid gap-3 d-sm-flex justify-content-center">
+        <a class="btn btn-primary btn-lg" th:href="@{/templates/projects}">Проекты</a>
+        <a class="btn btn-secondary btn-lg" th:href="@{/templates/tasks}">Задачи</a>
+        <a class="btn btn-success btn-lg" th:href="@{/templates/developers}">Разработчики</a>
+        <a class="btn btn-warning btn-lg" th:href="@{/templates/roles}">Роли</a>
+    </div>
+</div>
+
+
+</body>
+</html>

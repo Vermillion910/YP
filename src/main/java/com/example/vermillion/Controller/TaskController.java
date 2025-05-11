@@ -3,52 +3,86 @@ package com.example.vermillion.Controller;
 import com.example.vermillion.DTO.TaskDto;
 import com.example.vermillion.Model.Task;
 import com.example.vermillion.Service.TaskService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@RestController
+@Controller
 @RequestMapping("/tasks")
 @RequiredArgsConstructor
 public class TaskController {
+
     private final TaskService taskService;
 
-    @GetMapping
-    public List<Task> getAll() {
+    // ====== API JSON ======
+
+    @GetMapping("/api")
+    @ResponseBody
+    public List<Task> apiGetAll() {
         return taskService.findAll();
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<Task> getById(@PathVariable Long id) {
+    @GetMapping("/api/{id}")
+    @ResponseBody
+    public Task apiGetById(@PathVariable Long id) {
         return taskService.findById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new IllegalArgumentException("Task not found: " + id));
     }
 
-    @PostMapping
-    public ResponseEntity<Task> create(@RequestBody @Valid TaskDto dto) {
-        Task created = taskService.create(dto);
-        return ResponseEntity.status(201).body(created);
+    @PostMapping("/api")
+    @ResponseBody
+    public Task apiCreate(@RequestBody TaskDto dto) {
+        return taskService.create(dto);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Task> update(
-            @PathVariable Long id,
-            @RequestBody @Valid TaskDto dto
-    ) {
+    @PutMapping("/api/{id}")
+    @ResponseBody
+    public Task apiUpdate(@PathVariable Long id, @RequestBody TaskDto dto) {
         return taskService.update(id, dto)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new IllegalArgumentException("Task not found: " + id));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        boolean deleted = taskService.delete(id);
-        return deleted
-                ? ResponseEntity.ok().build()
-                : ResponseEntity.notFound().build();
+    @DeleteMapping("/api/{id}")
+    @ResponseBody
+    public void apiDelete(@PathVariable Long id) {
+        if (!taskService.delete(id)) {
+            throw new IllegalArgumentException("Task not found: " + id);
+        }
+    }
+
+    // ====== HTML/Thymeleaf ======
+
+    @GetMapping
+    public String listTasks(Model model) {
+        model.addAttribute("tasks", taskService.findAll());
+        return "tasks/list";
+    }
+
+    @GetMapping("/form")
+    public String showForm(@RequestParam(required = false) Long id, Model model) {
+        if (id != null) {
+            taskService.findById(id).ifPresent(t -> model.addAttribute("task", t));
+        } else {
+            model.addAttribute("task", new Task());
+        }
+        model.addAttribute("projects", taskService.findAllProjects());
+        model.addAttribute("developers", taskService.findAllDevelopers());
+        return "tasks/form";
+    }
+
+    @PostMapping("/save")
+    public String saveTask(@ModelAttribute Task task) {
+        taskService.saveEntity(task);
+        return "redirect:/tasks";
+    }
+
+    @GetMapping("/delete/{id}")
+    public String deleteTask(@PathVariable Long id) {
+        taskService.delete(id);
+        return "redirect:/tasks";
     }
 }

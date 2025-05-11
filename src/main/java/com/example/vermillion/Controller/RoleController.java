@@ -3,47 +3,86 @@ package com.example.vermillion.Controller;
 import com.example.vermillion.DTO.RoleDto;
 import com.example.vermillion.Model.Role;
 import com.example.vermillion.Service.RoleService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@RestController
+@Controller
 @RequestMapping("/roles")
 @RequiredArgsConstructor
 public class RoleController {
+
     private final RoleService roleService;
 
-    @GetMapping
-    public List<Role> getAll() {
+    // ====== API JSON ======
+
+    @GetMapping("/api")
+    @ResponseBody
+    public List<Role> apiGetAll() {
         return roleService.findAll();
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<Role> getById(@PathVariable Long id) {
+    @GetMapping("/api/{id}")
+    @ResponseBody
+    public Role apiGetById(@PathVariable Long id) {
         return roleService.findById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new IllegalArgumentException("Role not found: " + id));
     }
 
-    @PostMapping
-    public ResponseEntity<Role> create(@RequestBody @Valid RoleDto dto) {
-        Role created = roleService.create(dto);
-        return ResponseEntity.status(201).body(created);
+    @PostMapping("/api")
+    @ResponseBody
+    public Role apiCreate(@RequestBody RoleDto dto) {
+        return roleService.create(dto);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Role> update(@PathVariable Long id, @RequestBody @Valid RoleDto dto) {
+    @PutMapping("/api/{id}")
+    @ResponseBody
+    public Role apiUpdate(@PathVariable Long id, @RequestBody RoleDto dto) {
         return roleService.update(id, dto)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new IllegalArgumentException("Role not found: " + id));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        boolean deleted = roleService.delete(id);
-        return deleted ? ResponseEntity.ok().build() : ResponseEntity.notFound().build();
+    @DeleteMapping("/api/{id}")
+    @ResponseBody
+    public void apiDelete(@PathVariable Long id) {
+        if (!roleService.delete(id)) {
+            throw new IllegalArgumentException("Role not found: " + id);
+        }
+    }
+
+    // ====== HTML/Thymeleaf ======
+
+    @GetMapping
+    public String listRoles(Model model) {
+        model.addAttribute("roles", roleService.findAll());
+        model.addAttribute("developers", roleService.findAllDevelopers());
+        return "roles/list";
+    }
+
+    @GetMapping("/form")
+    public String showForm(@RequestParam(required = false) Long id, Model model) {
+        if (id != null) {
+            roleService.findById(id).ifPresent(r -> model.addAttribute("role", r));
+        } else {
+            model.addAttribute("role", new Role());
+        }
+        model.addAttribute("developers", roleService.findAllDevelopers());
+        return "roles/form";
+    }
+
+    @PostMapping("/save")
+    public String saveRole(@ModelAttribute Role role) {
+        roleService.saveEntity(role);
+        return "redirect:/roles";
+    }
+
+    @GetMapping("/delete/{id}")
+    public String deleteRole(@PathVariable Long id) {
+        roleService.delete(id);
+        return "redirect:/roles";
     }
 }
