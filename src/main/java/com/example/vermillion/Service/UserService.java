@@ -1,5 +1,6 @@
 package com.example.vermillion.Service;
 
+import com.example.vermillion.DTO.UserDto;
 import com.example.vermillion.Model.User;
 import com.example.vermillion.Repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -12,14 +13,15 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public User register(String username, String rawPassword) {
-        User u = new User();
-        u.setUsername(username);
-        u.setPassword(passwordEncoder.encode(rawPassword));
-        u.setRole("ROLE_USER");
-        return userRepository.save(u);
-    }
     public boolean userExists(String username) {
         return userRepository.findByUsername(username).isPresent();
+    }
+
+    public void register(UserDto userDto) {
+        User user = new User();
+        user.setUsername(userDto.getUsername());
+        user.setPassword(passwordEncoder.encode(userDto.getPassword()));
+        user.setRole(userDto.getRole());
+        userRepository.save(user);
     }
 }

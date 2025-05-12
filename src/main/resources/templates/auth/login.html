@@ -10,18 +10,21 @@
 <body class="bg-light">
 <div class="container py-5">
     <h2 class="mb-4">Вход</h2>
-    <form method="post" action="/login" class="col-md-4">
+    <form method="post" th:action="@{/login}" class="col-md-4">
         <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
         <div th:if="${msg}" class="alert alert-success" th:text="${msg}"></div>
+
         <div class="mb-3">
             <label class="form-label">Логин</label>
             <input name="username" class="form-control" required/>
         </div>
+
         <div class="mb-3">
             <label class="form-label">Пароль</label>
             <input type="password" name="password" class="form-control" required/>
         </div>
-        <button class="btn btn-primary">Войти</button>
+
+        <button type="submit" class="btn btn-primary">Войти</button>
         <a class="btn btn-link" th:href="@{/register}">Регистрация</a>
     </form>
 </div>
